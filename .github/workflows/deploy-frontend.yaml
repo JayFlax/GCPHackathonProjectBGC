@@ -7,6 +7,8 @@ on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
     branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
@@ -14,20 +16,48 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   # This workflow contains a single job called "build"
-  deploy_app_engine_frontend:
+  deploy:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
+    env:
+      BUILD_PATH: bg-connect-app
+      IMAGE_NAME: gcr.io/${{ secrets.GCP_PROJECT_ID }}/${{ secrets.GCP_APP_NAME }}
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: checkout
       - uses: actions/checkout@v2
-      
+
       - id: auth #this step should fail since secrets are not set
+      - name: auth login
         uses: google-github-actions/auth@v0
         with:
-          credentials_json: ${{ secrets.gcp_credentials }}
-          
-      - id: 'deploy'
-        uses: 'google-github-actions/deploy-appengine@v0.5.0'
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: set up cloud sdk
+      - uses: google-github-actions/setup-gcloud@v0.3.0
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Authorize Docker push
+        run: gcloud auth configure-docker
+
+      - name: change directory to build path
+      - run: cd $BUILD_PATH
+      
+      - name: build & push image via cloudbuild yaml
+        run: gcloud builds submit --config cloudbuild.yaml .
+
+      - id: deploy
+      - name: deploy cloud run
+        uses: 'google-github-actions/deploy-cloudrun@v0'
+        with:
+          image: $IMAGE_NAME
+          service: ${{ secrets.GCP_APP_NAME }}-node-srv
+
+      - name: cloudrun output
+        run: 'curl "${{ steps.deploy.outputs.url }}"'
+
+      - name: finished deploying to cloud run
+        run: echo "l(^0^)7"
