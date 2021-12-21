@@ -38,12 +38,11 @@ jobs:
       #   with:
       #     credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
-      - name: set up cloud sdk
-        uses: google-github-actions/setup-gcloud@v0.3.0
+      - name: Login
+        uses: GoogleCloudPlatform/github-actions/setup-gcloud@master
         with:
-          project_id: gcr.io/${{ secrets.GCP_PROJECT_ID }}
+          GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
           service_account_email: ${{ secrets.GCP_EMAIL }}
-          credentials_file_path: true
           service_account_key: ${{ secrets.GCP_CREDENTIALS }}
 
 
