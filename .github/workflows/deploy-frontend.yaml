@@ -44,7 +44,8 @@ jobs:
         run: gcloud auth configure-docker
 
       - name: change directory to build path
-        run: cd $BUILD_PATH
+        run: |
+          cd $BUILD_PATH
       
       - name: build & push image via cloudbuild yaml
         run: gcloud builds submit --config cloudbuild.yaml .
@@ -60,4 +61,5 @@ jobs:
         run: 'curl "${{ steps.deploy.outputs.url }}"'
 
       - name: finished deploying to cloud run
-        run: echo "l(^0^)7"
+        run: |
+          echo "l(^0^)7"
