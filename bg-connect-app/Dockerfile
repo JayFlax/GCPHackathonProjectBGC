@@ -1,6 +1,7 @@
 FROM node:15-alpine
 WORKDIR /usr/src/app
-COPY package*.json .
+COPY package-lock.json .
+COPY package.json .
 COPY tsconfig.json .
 RUN npm install
 COPY . .
